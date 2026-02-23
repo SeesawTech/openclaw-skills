@@ -1,0 +1,9 @@
+# OpenClaw Skills Ignore
+.DS_Store
+*.skill
+__pycache__/
+*.pyc
+.env
+temp/
+dist/
+node_modules/
