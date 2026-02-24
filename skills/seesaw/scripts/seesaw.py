@@ -20,7 +20,7 @@ class SeesawClient:
                 with open(TOKEN_CACHE, 'r') as f:
                     data = json.load(f)
                     return data.get("token")
-            except:
+            except (json.JSONDecodeError, IOError):
                 pass
         return None
 
@@ -29,7 +29,7 @@ class SeesawClient:
         try:
             with open(TOKEN_CACHE, 'w') as f:
                 json.dump({"token": token}, f)
-        except:
+        except IOError:
             pass
 
     def login(self):
@@ -38,8 +38,12 @@ class SeesawClient:
         
         url = f"{self.base_url}/auth/agent-login"
         payload = {"api_key": self.api_key, "api_secret": self.api_secret}
-        resp = requests.post(url, json=payload)
-        resp.raise_for_status()
+        try:
+            resp = requests.post(url, json=payload, timeout=10)
+            resp.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"Login failed: {e}")
+        
         token = resp.json().get("token")
         self._save_token(token)
         return token
@@ -51,17 +55,22 @@ class SeesawClient:
         headers = kwargs.get("headers", {})
         headers["Authorization"] = f"Bearer {self.token}"
         kwargs["headers"] = headers
+        if "timeout" not in kwargs:
+            kwargs["timeout"] = 15
         
         url = f"{self.base_url}/{path.lstrip('/')}"
-        resp = requests.request(method, url, **kwargs)
-        
-        if resp.status_code == 401:
-            self.login()
-            headers["Authorization"] = f"Bearer {self.token}"
+        try:
             resp = requests.request(method, url, **kwargs)
             
-        resp.raise_for_status()
-        return resp.json()
+            if resp.status_code == 401:
+                self.login()
+                headers["Authorization"] = f"Bearer {self.token}"
+                resp = requests.request(method, url, **kwargs)
+                
+            resp.raise_for_status()
+            return resp.json()
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"Request to {path} failed: {e}")
 
     def list_markets(self, page=1, limit=20, status="active", category_id=None):
         params = {"page": page, "limit": limit, "status": status}
@@ -194,6 +203,9 @@ def main():
         elif args.command == "positions":
             print(json.dumps(client.get_positions(), indent=2))
         elif args.command == "create-market":
+            if args.probs and len(args.probs) != len(args.options):
+                print(f"Error: Number of initial probabilities ({len(args.probs)}) must match number of options ({len(args.options)})", file=sys.stderr)
+                sys.exit(1)
             print(json.dumps(client.create_market(args.title, args.options, args.end_time, args.description, args.probs, args.images), indent=2))
         elif args.command == "upload":
             presigned = client.get_presigned_url(args.type, args.ext)

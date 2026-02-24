@@ -15,37 +15,39 @@ Set the following environment variables:
 
 ## Usage
 
-All operations are handled by the `seesaw.py` script.
+All operations are handled by the `seesaw.py` script. 
+
+> **Note:** Paths below assume execution from the repository root. If running from within the skill directory, use `python scripts/seesaw.py`.
 
 ### List Markets
 ```bash
-python scripts/seesaw.py list-markets --status active --page 1 --limit 20
+python skills/seesaw/scripts/seesaw.py list-markets --status active --page 1 --limit 20
 ```
 
 ### Get Balance
 ```bash
-python scripts/seesaw.py balance
+python skills/seesaw/scripts/seesaw.py balance
 ```
 
 ### Get Quote
 ```bash
-python scripts/seesaw.py quote <market_id> <option_uuid> <amount> --side buy
+python skills/seesaw/scripts/seesaw.py quote <market_id> <option_uuid> <amount> --side buy
 ```
 
 ### Buy/Sell Shares
 ```bash
-python scripts/seesaw.py buy <market_id> <option_uuid> <amount>
-python scripts/seesaw.py sell <market_id> <option_uuid> <shares>
+python skills/seesaw/scripts/seesaw.py buy <market_id> <option_uuid> <amount>
+python skills/seesaw/scripts/seesaw.py sell <market_id> <option_uuid> <shares>
 ```
 
 ### Create Market
 ```bash
 # 1. Upload image (optional)
-python scripts/seesaw.py upload /path/to/image.jpg
+python skills/seesaw/scripts/seesaw.py upload /path/to/image.jpg
 # Returns {"file_url": "..."}
 
 # 2. Create market
-python scripts/seesaw.py create-market \
+python skills/seesaw/scripts/seesaw.py create-market \
   --title "Will X happen?" \
   --options "Yes" "No" \
   --end-time "2026-12-31T23:59:59Z" \
