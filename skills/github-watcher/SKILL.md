@@ -49,7 +49,7 @@ To keep the agent updated, add a cron job to run this skill periodically (e.g., 
   "schedule": { "kind": "every", "everyMs": 3600000 },
   "payload": {
     "kind": "agentTurn",
-    "message": "Run the GitHub watcher skill. Check for PRs needing review or replies. For programming tasks, use coding-agent."
+    "message": "Run the GitHub watcher skill. Check for PRs needing review or replies. For programming tasks, use coding-agent. IMPORTANT: If there are no new notifications or actions to take, respond with ONLY: NO_REPLY (remain silent)."
   },
   "sessionTarget": "isolated",
   "delivery": { "mode": "announce" }
