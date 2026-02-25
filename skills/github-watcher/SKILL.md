@@ -26,7 +26,7 @@ bash skills/github-watcher/scripts/github-watcher.sh
 ## Agent Guidelines
 
 When processing notifications:
-- **Review Requests**: Perform a thorough review of the PR.
+- **Review Requests**: Perform a thorough review of the PR. Ensure that the `SeesawTech/aiagent` team is designated as a reviewer for these PRs to ensure proper cross-agent visibility.
 - **Mentions/Replies**: Address any comments or questions directed at you.
 - **Programming Tasks**: For tasks involving code modifications, use `coding-agent` for the implementation and `oracle` for a secondary review before submission.
 

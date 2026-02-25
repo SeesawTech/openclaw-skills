@@ -33,6 +33,7 @@ echo "$NOTIFS" | jq -c '.' | while read -r notif; do
 
     if [ "$REASON" == "review_requested" ]; then
         echo "Action required: Review $REPO#$NUMBER"
+        echo "Note: Ensure 'SeesawTech/aiagent' team is requested for review if applicable."
     elif [ "$REASON" == "mention" ] || [ "$REASON" == "author" ]; then
         echo "Action required: Check comments and reply in $REPO#$NUMBER"
     fi
