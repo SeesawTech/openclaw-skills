@@ -21,14 +21,13 @@ if [ -n "$EXPECTED_ACCOUNT" ] && [ "$ACTIVE_ACCOUNT" != "$EXPECTED_ACCOUNT" ]; t
     echo "Error: gh active account ($ACTIVE_ACCOUNT) does not match GITHUB_EXPECTED_ACCOUNT ($EXPECTED_ACCOUNT)."
     exit 1
 fi
-echo "Active GitHub account: $ACTIVE_ACCOUNT"
 
 # Fetch PullRequest notifications
 # filters for mentions, review_requested, and author (for updates)
 NOTIFS_RAW=$(gh api notifications --jq '.[] | select(.subject.type == "PullRequest")')
 
 if [ -z "$NOTIFS_RAW" ]; then
-    echo "No new PullRequest notifications."
+    # SILENT_IF_EMPTY=true (handled by agent or via NO_REPLY)
     exit 0
 fi
 
@@ -43,12 +42,12 @@ NEW_LAST_ID=$(echo "$NOTIFS_RAW" | jq -r '.id' | head -n 1)
 
 NOTIFS=$(echo "$NOTIFS_RAW" | jq -c ". | {id: .id, repo: .repository.full_name, org: .repository.owner.login, title: .subject.title, reason: .reason, url: .subject.url, number: (.subject.url | split(\"/\") | last)}")
 
-echo "Processing PullRequest notifications..."
-
 FOUND_COUNT=0
-echo "$NOTIFS" | while read -r notif; do
+OUTPUT=""
+
+while read -r notif; do
     ID=$(echo "$notif" | jq -r '.id')
-    # Skip if already seen (simple id comparison assuming descending order)
+    # Skip if already seen
     if [ -n "$LAST_ID" ] && [ "$ID" == "$LAST_ID" ]; then
         break
     fi
@@ -64,21 +63,18 @@ echo "$NOTIFS" | while read -r notif; do
     REASON=$(echo "$notif" | jq -r '.reason')
     TITLE=$(echo "$notif" | jq -r '.title')
 
-    echo "Found PR: $REPO#$NUMBER ($REASON) - $TITLE"
+    LINE="Found PR: $REPO#$NUMBER ($REASON) - $TITLE"
+    OUTPUT="$OUTPUT$LINE\n"
     ((FOUND_COUNT++))
 
-    # Guidance for the agent processing these notifications:
-    # 1. review_requested: Review the PR.
-    # 2. mention/author: Check for comments needing a reply.
-    # Note: For programming tasks, use 'coding-agent' for implementation.
-
     if [ "$REASON" == "review_requested" ]; then
-        echo "Action required: Review $REPO#$NUMBER"
+        OUTPUT="${OUTPUT}Action required: Review $REPO#$NUMBER\n"
     elif [ "$REASON" == "mention" ] || [ "$REASON" == "author" ]; then
-        echo "Action required: Check comments and reply in $REPO#$NUMBER"
+        OUTPUT="${OUTPUT}Action required: Check comments and reply in $REPO#$NUMBER\n"
     fi
-done
+done <<< "$NOTIFS"
 
-if [ "$FOUND_COUNT" -eq 0 ]; then
-    echo "No new notifications matching filters."
+if [ "$FOUND_COUNT" -gt 0 ]; then
+    echo "Processing PullRequest notifications..."
+    echo -e "$OUTPUT"
 fi
