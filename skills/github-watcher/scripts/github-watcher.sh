@@ -7,7 +7,9 @@
 EXPECTED_ACCOUNT="${GITHUB_EXPECTED_ACCOUNT:-}"
 WATCH_ORG="${WATCH_ORG:-}"
 WATCH_REPOS="${WATCH_REPOS:-}"
-STATE_FILE="/root/.openclaw/workspace/.github_watcher_state"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}"
+STATE_FILE="$STATE_DIR/github_watcher_state"
+mkdir -p "$STATE_DIR"
 
 # Ensure gh CLI is authenticated
 if ! gh auth status >/dev/null 2>&1; then
